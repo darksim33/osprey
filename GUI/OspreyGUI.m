@@ -50,7 +50,8 @@ function OspreyGUI(MRSCont)
     ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
     matlabFolder    = strjoin(allFolders(1:end-2), filesep); % parent-parent folder (usually MATLAB folder)
     % SPM
-    addpath(genpath([ospFolder filesep 'spm12' filesep]));    % SPM path
+%     addpath(genpath([ospFolder filesep 'spm12' filesep]));    % SPM path
+    addpath(genpath([matlabFolder filesep 'spm12' filesep]));
     % Check if SPM12 is installed
     spmversion = fileparts(which('spm'));
     if isempty(spmversion)
@@ -166,7 +167,7 @@ function OspreyGUI(MRSCont)
     end
     
     if MRSCont.flags.didOverview %Get variables for the overview tab
-        gui.NAAnormed = 1;
+        gui.NAAnormed = 0;
         gui.NoGroups = MRSCont.overview.NoGroups;
         [cb] = cbrewer('qual', 'Dark2', 12, 'pchip');
         temp = cb(3,:);
@@ -701,8 +702,8 @@ function osp_iniProcessWindow()
                 gui.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);                
                 gui.refProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.wProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                gui.proTab.TabTitles  = {'A','B','C','D','reference','water'};
-                gui.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on'};
+                gui.proTab.TabTitles  = {'A','B','C','D','diff1','diff2','sum','reference','water'};
+                gui.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on', 'on', 'on', 'on'};
                 gui.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab', 'refProTab', 'wProTab'}; %Create 9 tabs
             else
                 if MRSCont.flags.hasRef %Has only reference?
@@ -1149,7 +1150,8 @@ function osp_updateFitWindow()
                 NameText = [''];
                 RawAmplText = [''];
                 for m = 1 : length(RawAmpl)
-                    NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fitStyle){1,gui.SelectedDataset}.name{m} ': \n']];
+%                     NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fitStyle){1,gui.SelectedDataset}.name{m} ': \n']];
+                    NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fitStyle){1}.name{m} ': \n']];
                     RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                 end
                 set(gui.fitResults, 'Title', ['Raw Water Ratio']);
@@ -1471,7 +1473,7 @@ function osp_iniOverviewWindow()
 %%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
 %osp_plotQuantifyTable is used to create a correlation plot
         temp = figure( 'Visible', 'off' );
-        [temp] = osp_plotScatter(MRSCont, gui.QuantModelNames{gui.SelectedModel}, gui.QuantNames{gui.SelectedQuant},MRSCont.quantify.metabs{gui.SelectedMetab},gui.CorrMeas{gui.SelectedCorr},gui.CorrNames{gui.SelectedCorr},1);
+        temp = osp_plotScatter(MRSCont, gui.QuantModelNames{gui.SelectedModel}, gui.QuantNames{gui.SelectedQuant},MRSCont.quantify.metabs{gui.SelectedMetab},gui.CorrMeas{gui.SelectedCorr},gui.CorrNames{gui.SelectedCorr},1);
         gui.ViewAxes = gca();
         set( gui.ViewAxes, 'Parent', gui.corrOvPlot);
         set(gui.corrOvPlot,'Heights', [-0.07 -0.90 -0.03]);
@@ -1572,8 +1574,8 @@ function osp_updatemeanOvWindow()
                         MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.ProNames{t}]);
                     yl = MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.ProNames{t}]) - ...
                         MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.ProNames{t}]);
-                    temp = fill([MRSCont.overview.(['ppm_' (gui.ProNames{t})]) fliplr(MRSCont.overview.(['ppm_' (gui.ProNames{t})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
-                    plot(MRSCont.overview.(['ppm_' (gui.ProNames{t})]),MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.ProNames{t}])+shift ,'color',cb(g,:), 'LineWidth', 1);
+                    temp = fill([MRSCont.overview.(['ppm_data_' (gui.ProNames{t})]) fliplr(MRSCont.overview.(['ppm_data_' (gui.ProNames{t})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
+                    plot(MRSCont.overview.(['ppm_data_' (gui.ProNames{t})]),MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.ProNames{t}])+shift ,'color',cb(g,:), 'LineWidth', 1);
                 end
 
             else %Water data
@@ -1825,7 +1827,7 @@ function onQuant( ~, ~ ) %Callback Quantify button
     gui.SelectedMetab = find(strcmp(MRSCont.quantify.metabs, 'tNAA'));
     osp_iniQuantifyWindow();
     MRSCont = OspreyOverview(MRSCont);
-    gui.NAAnormed = 1;
+    gui.NAAnormed = 0;
     gui.NoGroups = MRSCont.overview.NoGroups;
     [cb] = cbrewer('qual', 'Dark2', 12, 'pchip');
     temp = cb(3,:);

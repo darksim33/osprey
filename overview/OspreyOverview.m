@@ -357,12 +357,15 @@ end
 %%% 4. SORTING DATA  %%%
 if MRSCont.flags.hasStatfile
     statCSV = readtable(MRSCont.file_stat, 'Delimiter', ',');
-    group_idx = find(strcmp(statCSV{:,end},'group'));
+%     group_idx = find(strcmp(statCSV{:,end},'group'));
+%     group_idx = find(strcmp(statCSV{:,1},'group'));
+    group_idx = strcmp(statCSV.Properties.VariableNames(:), 'group');
     if isempty(group_idx)
         MRSCont.overview.groups = ones(MRSCont.nDatasets,1);
         MRSCont.overview.NoGroups = max(MRSCont.overview.groups);
     else
-        MRSCont.overview.groups = statCSV{:,group_idx};
+        MRSCont.overview.groups = statCSV{:,group_idx}';     
+%         MRSCont.overview.groups = statCSV{group_idx,:}';   
         MRSCont.overview.NoGroups = max(MRSCont.overview.groups);
     end
 else
@@ -430,17 +433,22 @@ for sf = 1 : NoFit
 end
 
 %%% 6. READ CORRELATION DATA INTO THE STRUCT %%%
+% if MRSCont.flags.hasStatfile
+%     cor = 1;
+%     while ~strcmp(statCSV{cor,end},'')
+%         MRSCont.overview.corr.Names{cor} = statCSV{cor,end};
+%         cor = cor + 1;
+%     end
+%     for cor = 1 : size(statCSV,2)-1
+%         MRSCont.overview.corr.Meas{cor} = statCSV{:,cor};
+%     end
+% end
 if MRSCont.flags.hasStatfile
-    cor = 1;
-    while ~strcmp(statCSV{cor,end},'')
-        MRSCont.overview.corr.Names{cor} = statCSV{cor,end};
-        cor = cor + 1;
-    end
-    for cor = 1 : size(statCSV,2)-1
+    for cor = 1:size(statCSV,2)-1
+        MRSCont.overview.corr.Names{cor} = statCSV.Properties.VariableNames(cor);
         MRSCont.overview.corr.Meas{cor} = statCSV{:,cor};
-    end
+    end    
 end
-
 %%% 7. CLEAN UP AND SAVE %%%
 % Set exit flags
 MRSCont.flags.didOverview          = 1;
